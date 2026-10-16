@@ -1,0 +1,43 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "BILLING_API_DB",
+        "BILLING_API_PORT",
+        "COBRIX_API_URL",
+        "COBRIX_DB_PATH",
+        "COBRIX_PORT",
+        "HOST",
+        "ISP_API_URL",
+        "ISP_PASSWORD",
+        "ISP_USERNAME",
+        "PORT",
+        "SANDBOX_TODAY",
+        "WEB_ORIGIN",
+        "WEB_PORT"
+      ]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    }
+  }
+}

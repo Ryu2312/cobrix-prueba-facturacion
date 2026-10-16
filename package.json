@@ -1,0 +1,27 @@
+{
+  "name": "cobrix-billing-challenge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node scripts/start.mjs",
+    "dev": "node scripts/start.mjs",
+    "build": "pnpm exec turbo run build",
+    "typecheck": "pnpm exec turbo run typecheck",
+    "lint": "pnpm exec turbo run lint",
+    "test": "pnpm exec turbo run test",
+    "coverage": "pnpm --filter @cobrix/backend coverage",
+    "seed": "pnpm --filter @cobrix/billing-api seed",
+    "db:generate": "pnpm --filter @cobrix/backend db:generate",
+    "db:migrate": "pnpm --filter @cobrix/backend db:migrate"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10",
+    "turbo": "2.11.8",
+    "typescript": "5.9.2"
+  }
+}
