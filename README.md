@@ -49,7 +49,7 @@ docs/
 
 El simulador y sus datos mantienen su semántica original. Cobrix solo lo consulta por HTTP. La base de Cobrix es independiente, su ruta se configura con `COBRIX_DB_PATH` y las migraciones de Drizzle se guardan en `apps/cobrix/drizzle/`.
 
-El backend usa la arquitectura V2 en `apps/cobrix/src/v2/modules/`: Settings, Dashboard, Clientes, Facturas y Sincronización separan dominio, aplicación, infraestructura y presentación. El frontend conserva sus rutas públicas `/api/*`, atendidas directamente por esos módulos (no hay prefijo local `/api/v2`). Settings se consulta y actualiza en `/api/settings`, y la conexión ISP se prueba en `/api/provider/test`. El `PUT` de Settings recibe la configuración completa; solo la contraseña del proveedor puede omitirse y, si se omite o se envía vacía, se conserva la existente. La respuesta confirma la actualización sin devolver la configuración. V2 comparte la base y el esquema persistente existentes; Settings separa agregado, factoría y objetos de valor, y usa un seed que inicializa solo si no hay configuración. Las operaciones de lectura no insertan valores por defecto.
+El backend usa la arquitectura modular en `apps/cobrix/src/modules/`: Settings, Dashboard, Clientes, Facturas y Sincronización separan dominio, aplicación, infraestructura y presentación. El frontend conserva sus rutas públicas `/api/*`, atendidas directamente por esos módulos (no hay prefijo local `/api/v2`). Settings se consulta y actualiza en `/api/settings`, y la conexión ISP se prueba en `/api/provider/test`. El `PUT` de Settings recibe la configuración completa; solo la contraseña del proveedor puede omitirse y, si se omite o se envía vacía, se conserva la existente. La respuesta confirma la actualización sin devolver la configuración. Settings separa agregado, factoría y objetos de valor, y usa un seed que inicializa solo si no hay configuración. Las operaciones de lectura no insertan valores por defecto.
 
 El frontend está organizado por responsabilidades dentro de `apps/web/src/`: `pages/` contiene una pantalla por archivo, `components/` agrupa piezas reutilizables en `ui/`, `tables/`, `customer/`, `sync/` y `settings/`, `layouts/` contiene la estructura de navegación, `hooks/` los recursos remotos y el estado de configuración, y `lib/` las funciones comunes de API, validación y formato. `App.tsx` conserva únicamente el enrutamiento; los tipos de las respuestas compartidas están en `types.ts`.
 
@@ -80,6 +80,26 @@ pnpm seed                 # regenerar SOLO el simulador (uso de desarrollo)
 ```
 
 El comando `pnpm seed` reemplaza el contenido de la base del simulador. No es necesario para el uso normal; las pruebas crean un sandbox temporal y no alteran `data/billing-api.sqlite`.
+
+## Pruebas automáticas
+
+Las pruebas cubren cuatro niveles:
+
+| Suite | Qué verifica |
+|---|---|
+| `test/domain.test.ts` | Normalización de identidades (V-12345678, 09000123…), parseo de período en español, elegibilidad de contratos y clasificación de pagos (pagado, parcial, exonerado, sin evidencia, contradictorio) |
+| `test/isp-client.test.ts` | Token Bearer, reutilización de token, renovación ante 401 y redacción de contraseñas en mensajes de error |
+| `test/scheduler.test.ts` | Expresión cron generada, zona America/Caracas, activación/desactivación, ejecución de `automatic()`, manejo de errores sin romper el proceso y rechazo de concurrencia |
+| `test/settings-v2.test.ts` | Validación de dominio, conservación de contraseña omitida, seed idempotente e hidratación del repositorio |
+| `test/api.test.ts` | Contratos HTTP de todos los endpoints públicos (settings, customers, invoices, runs, health) |
+| `test/acceptance.test.ts` | **Ciclo completo con el simulador real:** simular → importar → reimportar (idempotencia) → pagar en la caja → reconciliar → anular → reconciliar otra vez; comprueba los números exactos del enunciado (20 clientes, 42 facturas, USD 1.235, 8 pagadas, USD 955) |
+
+```bash
+pnpm test       # todas las suites
+pnpm coverage   # cobertura V8 sobre dominio y sincronización
+```
+
+Las pruebas de aceptación crean un sandbox temporal en `/tmp` y no modifican `data/billing-api.sqlite`.
 
 ## Variables de entorno
 

@@ -53,3 +53,28 @@ La revisión encontró que V1 estaba organizada por capas técnicas: concentraba
 - La ejecución automática es local y de una sola instancia; no sustituye un sistema de colas distribuido.
 - El reporte de cobertura se enfoca en reglas de dominio y sincronización, no persigue un porcentaje arbitrario.
 - Antes de producción se añadirían autenticación del panel, cifrado/gestión de secretos, monitorización, paginación, límites operativos configurables con métricas y un despliegue multi-instancia.
+
+## Qué haría con más tiempo
+
+- **Paginación y filtros avanzados:** la tabla de facturas no pagina; con muchos contratos se volvería lenta. Añadiría cursor-based pagination en el backend y filtros por período y contrato en el frontend.
+- **Autenticación del panel:** actualmente cualquiera con acceso a la red puede leer la cartera y cambiar la configuración del ISP. Añadiría autenticación básica (sesión + cookie) o JWT para el operador.
+- **Cola de trabajo persistente:** el scheduler `node-cron` pierde corridas si el proceso está detenido a la hora programada. Reemplazaría con BullMQ sobre Redis o similar para garantizar ejecución at-least-once.
+- **Cifrado del secreto del proveedor:** la contraseña del ISP se guarda en texto plano en SQLite. La protegería con `libsodium` o KMS.
+- **Monitorización y alertas:** añadiría logs estructurados (Pino ya viene con Fastify), métricas de corridas fallidas y una alerta cuando el monto bloqueado por topes supera un umbral configurable.
+- **Test E2E del frontend:** Playwright contra el panel con datos reales del sandbox.
+
+## Punto diferencial
+
+El punto diferencial de esta entrega no es una feature llamativa: es la **correctitud verificable**.
+
+Tres decisiones concretas lo demuestran:
+
+**1. Arquitectura que separa reglas de negocio de infraestructura.**
+Cada módulo (Settings, Sincronización, Clientes…) divide `domain/`, `application/`, `infrastructure/` y `presentation/`. Las reglas de negocio — normalización de identidades, clasificación de pagos, elegibilidad de cuotas — viven en clases puras sin dependencia de SQLite ni HTTP. Eso hace que los tests de dominio sean instantáneos y que una futura migración de base de datos o ISP no toque la lógica comercial.
+
+**2. El ciclo de aceptación es un test automatizado, no un checklist manual.**
+`test/acceptance.test.ts` levanta el simulador ISP en un puerto aleatorio, crea una base Cobrix temporal, ejecuta el ciclo completo (simular → importar → reimportar → pagar en la caja → conciliar → anular → conciliar de nuevo) y verifica cada número del enunciado: 20 clientes, 42 facturas, USD 1.235, 8 pagadas, 34 abiertas por USD 955. Cualquier regresión en cualquier regla quiebra el test.
+
+**3. Nunca se adivina: todo resultado incierto queda registrado.**
+Si la API del ISP devuelve filas contradictorias, un contrato de otro ID, cuotas duplicadas o un `success: false` con datos válidos, el sistema no asume ni filtra: registra el contrato como inconsistente, lo excluye y deja traza en el historial de corridas. El operador siempre puede ver qué se importó, por qué se excluyó y con qué evidencia se marcó pagada una factura.
+
