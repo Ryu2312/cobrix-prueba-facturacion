@@ -1,0 +1,1 @@
+ALTER TABLE `contracts` ADD `address` text DEFAULT '' NOT NULL;

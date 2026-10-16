@@ -1,0 +1,32 @@
+{
+  "name": "@cobrix/backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --experimental-transform-types --disable-warning=ExperimentalWarning src/main.ts",
+    "start": "node --experimental-transform-types --disable-warning=ExperimentalWarning src/main.ts",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check src test",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --experimental-transform-types --disable-warning=ExperimentalWarning src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "11.3.1",
+    "@fastify/type-provider-json-schema-to-ts": "5.0.1",
+    "drizzle-orm": "1.0.0-rc.4",
+    "fastify": "5.12.7",
+    "node-cron": "4.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.3.0",
+    "@vitest/coverage-v8": "5.0.4",
+    "drizzle-kit": "1.0.0-rc.4",
+    "prettier": "3.9.10",
+    "typescript": "5.9.2",
+    "vitest": "5.0.4"
+  }
+}
