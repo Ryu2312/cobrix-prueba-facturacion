@@ -46,9 +46,9 @@ export function CustomersPage() {
                 <tr>
                   <th>CLIENTE</th>
                   <th>DOCUMENTO</th>
-                  <th>TIPO</th>
+                  <th className="center">TIPO</th>
                   <th>CONTRATOS</th>
-                  <th>FACTURAS ABIERTAS</th>
+                  <th className="center">FACTURAS</th>
                   <th>DEUDA</th>
                   <th>VENCE DESDE</th>
                   <th />
